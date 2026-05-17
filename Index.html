@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stok Perlengkapan Bayi</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: #F8FAFC;
+      min-height: 100vh;
+      padding: 20px 16px 40px;
+    }
+
+    /* HEADER */
+    .header { text-align: center; margin-bottom: 24px; }
+    .header .emoji { font-size: 36px; margin-bottom: 4px; }
+    .header h1 { font-size: 22px; font-weight: 900; color: #1E293B; letter-spacing: -0.5px; }
+    .header p { font-size: 13px; color: #94A3B8; font-weight: 600; margin-top: 4px; }
+
+    /* SUMMARY GRID */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-bottom: 20px;
+    }
+    .summary-chip {
+      border-radius: 12px;
+      padding: 8px 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+    .summary-chip .count { font-weight: 900; font-size: 22px; line-height: 1; }
+    .summary-chip .label { font-size: 10px; font-weight: 700; text-align: center; line-height: 1.3; }
+
+    /* REMINDER */
+    #reminder {
+      background: #FFF7ED;
+      border: 2px solid #FED7AA;
+      border-radius: 14px;
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    #reminder .reminder-title { font-weight: 800; font-size: 13px; color: #C2410C; margin-bottom: 8px; }
+    .reminder-row { font-size: 12px; margin-bottom: 4px; }
+    .reminder-row:last-child { margin-bottom: 0; }
+
+    /* CATEGORY CARD */
+    .category-card {
+      background: white;
+      border-radius: 16px;
+      margin-bottom: 14px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .category-header {
+      padding: 10px 16px;
+      font-weight: 800;
+      font-size: 14px;
+    }
+
+    /* ITEM ROW */
+    .item-row {
+      padding: 10px 16px;
+      border-bottom: 1px solid #F1F5F9;
+    }
+    .item-row:last-child { border-bottom: none; }
+    .item-name { font-size: 14px; font-weight: 700; color: #334155; margin-bottom: 8px; }
+
+    /* STATUS BUTTONS — horizontally scrollable */
+    .status-btns {
+      display: flex;
+      gap: 5px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .status-btns::-webkit-scrollbar { display: none; }
+    .status-btn {
+      border: 2px solid transparent;
+      border-radius: 20px;
+      padding: 5px 11px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      background: #F1F5F9;
+      color: #94A3B8;
+      transition: all 0.15s;
+      font-family: 'Nunito', sans-serif;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .status-btn.active {
+      border-color: var(--clr);
+      background: var(--bg);
+      color: var(--clr);
+    }
+
+    /* NOTE */
+    .item-note {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #CBD5E1;
+      font-style: italic;
+      cursor: pointer;
+    }
+    .item-note.has-note { color: #64748B; font-style: normal; }
+    .note-input {
+      margin-top: 6px;
+      width: 100%;
+      font-size: 12px;
+      border: 1.5px solid #CBD5E1;
+      border-radius: 8px;
+      padding: 4px 8px;
+      color: #475569;
+      outline: none;
+      font-family: 'Nunito', sans-serif;
+    }
+
+    .footer { text-align: center; font-size: 11px; color: #CBD5E1; margin-top: 8px; }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="emoji">🧸</div>
+    <h1>Stok Perlengkapan Bayi</h1>
+    <p>Geser & tap status untuk update persediaan</p>
+  </div>
+
+  <!-- SUMMARY GRID (2 rows x 3 cols) -->
+  <div class="summary-grid">
+    <div class="summary-chip" style="background:#D1FAE5;">
+      <span class="count" id="count-aman" style="color:#10B981;">0</span>
+      <span class="label" style="color:#10B981;">Aman</span>
+    </div>
+    <div class="summary-chip" style="background:#DBEAFE;">
+      <span class="count" id="count-4minggu" style="color:#3B82F6;">0</span>
+      <span class="label" style="color:#3B82F6;">Cukup 4 minggu</span>
+    </div>
+    <div class="summary-chip" style="background:#EDE9FE;">
+      <span class="count" id="count-3minggu" style="color:#8B5CF6;">0</span>
+      <span class="label" style="color:#8B5CF6;">Cukup 3 minggu</span>
+    </div>
+    <div class="summary-chip" style="background:#FEF3C7;">
+      <span class="count" id="count-2minggu" style="color:#D97706;">0</span>
+      <span class="label" style="color:#D97706;">Cukup 2 minggu</span>
+    </div>
+    <div class="summary-chip" style="background:#FFEDD5;">
+      <span class="count" id="count-1minggu" style="color:#EA580C;">0</span>
+      <span class="label" style="color:#EA580C;">Cukup 1 minggu</span>
+    </div>
+    <div class="summary-chip" style="background:#FEE2E2;">
+      <span class="count" id="count-habis" style="color:#EF4444;">0</span>
+      <span class="label" style="color:#EF4444;">Perlu beli</span>
+    </div>
+  </div>
+
+  <!-- REMINDER -->
+  <div id="reminder">
+    <div class="reminder-title">🛒 Reminder Belanja</div>
+    <div id="reminder-body"></div>
+  </div>
+
+  <!-- CATEGORIES -->
+  <div id="categories"></div>
+
+  <p class="footer">Geser tombol ke kanan untuk semua pilihan · Tap "+ catatan" untuk keterangan</p>
+
+  <script>
+    const STATUS_OPTIONS = [
+      { val: "aman",    label: "✅ Aman",            clr: "#10B981", bg: "#D1FAE5" },
+      { val: "4minggu", label: "🔵 Cukup 4 minggu",  clr: "#3B82F6", bg: "#DBEAFE" },
+      { val: "3minggu", label: "🟣 Cukup 3 minggu",  clr: "#8B5CF6", bg: "#EDE9FE" },
+      { val: "2minggu", label: "🟡 Cukup 2 minggu",  clr: "#D97706", bg: "#FEF3C7" },
+      { val: "1minggu", label: "🟠 Cukup 1 minggu",  clr: "#EA580C", bg: "#FFEDD5" },
+      { val: "habis",   label: "❌ Perlu beli",       clr: "#EF4444", bg: "#FEE2E2" },
+    ];
+
+    const REMINDER_SHOW = ["habis", "1minggu", "2minggu"];
+    const REMINDER_LABELS = {
+      "habis":   "Perlu beli segera",
+      "1minggu": "Cukup 1 minggu",
+      "2minggu": "Cukup 2 minggu",
+    };
+
+    const categories = [
+      {
+        label: "🍼 Popok & Kebersihan",
+        color: "#FBBF24", bg: "#FFFBEB",
+        items: ["Popok", "Tisu basah", "Tisu kering", "Cottonball", "Cottonbud"],
+      },
+      {
+        label: "🛁 Mandi Bayi",
+        color: "#60A5FA", bg: "#EFF6FF",
+        items: ["Sabun mandi bayi", "Sampo", "Sikat gigi bayi", "Spons cuci bayi"],
+      },
+      {
+        label: "💆 Perawatan Tubuh",
+        color: "#34D399", bg: "#ECFDF5",
+        items: ["Minyak telon", "Gently / penghangat badan", "Body lotion", "Seradan (bedak)", "Hair lotion"],
+      },
+      {
+        label: "👕 Cuci Baju",
+        color: "#A78BFA", bg: "#F5F3FF",
+        items: ["Deterjen bayi"],
+      },
+      {
+        label: "🧴 Cuci Perlengkapan",
+        color: "#F87171", bg: "#FEF2F2",
+        items: ["Sabun cuci dot bayi"],
+      },
+    ];
+
+    const statuses = {};
+    const notes    = {};
+    categories.forEach(cat => {
+      cat.items.forEach(item => { statuses[item] = "aman"; notes[item] = ""; });
+    });
+
+    function safeId(item) { return item.replace(/[^a-zA-Z0-9]/g, "_"); }
+
+    function setStatus(item, val) {
+      statuses[item] = val;
+      const id = safeId(item);
+      document.querySelectorAll("#row_" + id + " .status-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.val === val);
+      });
+      updateSummary();
+    }
+
+    function updateSummary() {
+      STATUS_OPTIONS.forEach(opt => {
+        const el = document.getElementById("count-" + opt.val);
+        if (el) el.textContent = Object.values(statuses).filter(v => v === opt.val).length;
+      });
+
+      const rows = [];
+      REMINDER_SHOW.forEach(key => {
+        const items = Object.entries(statuses).filter(([, v]) => v === key).map(([k]) => k);
+        if (items.length) {
+          const opt = STATUS_OPTIONS.find(o => o.val === key);
+          rows.push(
+            `<div class="reminder-row">
+              <b style="color:${opt.clr};">${REMINDER_LABELS[key]}:</b>
+              <span style="color:#475569;"> ${items.join(", ")}</span>
+            </div>`
+          );
+        }
+      });
+
+      const reminder = document.getElementById("reminder");
+      if (rows.length) {
+        reminder.style.display = "block";
+        document.getElementById("reminder-body").innerHTML = rows.join("");
+      } else {
+        reminder.style.display = "none";
+      }
+    }
+
+    function toggleNote(item) {
+      const id = safeId(item);
+      document.getElementById("note_" + id).style.display = "none";
+      const inp = document.getElementById("input_" + id);
+      inp.style.display = "block";
+      inp.focus();
+    }
+
+    function saveNote(item) {
+      const id      = safeId(item);
+      const inp     = document.getElementById("input_" + id);
+      const noteDiv = document.getElementById("note_" + id);
+      const val     = inp.value.trim();
+      notes[item]   = val;
+      inp.style.display  = "none";
+      noteDiv.style.display = "block";
+      if (val) {
+        noteDiv.textContent = "📝 " + val;
+        noteDiv.classList.add("has-note");
+      } else {
+        noteDiv.textContent = "+ catatan";
+        noteDiv.classList.remove("has-note");
+      }
+    }
+
+    // RENDER
+    const container = document.getElementById("categories");
+    categories.forEach(cat => {
+      const card = document.createElement("div");
+      card.className = "category-card";
+
+      const header = document.createElement("div");
+      header.className = "category-header";
+      header.style.background   = cat.bg;
+      header.style.borderBottom = `2px solid ${cat.color}33`;
+      header.style.color        = cat.color;
+      header.textContent        = cat.label;
+      card.appendChild(header);
+
+      cat.items.forEach(item => {
+        const id  = safeId(item);
+        const row = document.createElement("div");
+        row.className = "item-row";
+        row.id = "row_" + id;
+
+        const escItem = item.replace(/'/g, "\\'");
+
+        const btnHtml = STATUS_OPTIONS.map(opt =>
+          `<button class="status-btn${opt.val === 'aman' ? ' active' : ''}"
+            data-val="${opt.val}"
+            style="--clr:${opt.clr};--bg:${opt.bg};"
+            onclick="setStatus('${escItem}','${opt.val}')">
+            ${opt.label}
+          </button>`
+        ).join("");
+
+        row.innerHTML = `
+          <div class="item-name">${item}</div>
+          <div class="status-btns">${btnHtml}</div>
+          <div class="item-note" id="note_${id}" onclick="toggleNote('${escItem}')">+ catatan</div>
+          <input class="note-input" id="input_${id}" style="display:none;" placeholder="Tambah catatan..."
+            onblur="saveNote('${escItem}')"
+            onkeydown="if(event.key==='Enter') saveNote('${escItem}')" />
+        `;
+        card.appendChild(row);
+      });
+
+      container.appendChild(card);
+    });
+
+    updateSummary();
+  </script>
+</body>
+</html>
